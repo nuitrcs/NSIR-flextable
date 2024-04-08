@@ -13,6 +13,11 @@ editor_options:
 #| label: setup
 #| include: false
 
+if (!("ggplot2" %in% installed.packages()[,"Package"])) install.packages("ggplot2")
+if (!("dplyr" %in% installed.packages()[,"Package"])) install.packages("dplyr")
+if (!("tidyr" %in% installed.packages()[,"Package"])) install.packages("tidyr")
+if (!("flextable" %in% installed.packages()[,"Package"])) install.packages("flextable")
+
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -29,13 +34,18 @@ more.
 If you check the yaml header at the top of this document, you can notice
 that we are using the `word_document` output format. This means that the
 output of this markdown document will be rendered into a Word document,
-rather than an HTML file. We will focus on creating tables in Word
-documents, but `flextable` also supports creating tables in HTML and
-PowerPoint.
+rather than an HTML file. Although We focus on creating tables in Word
+documents, `flextable` also supports HTML and PowerPoint.
 
-You will learn how to use `flextable` to create tables customize various
-aspects of the table such as merging cells, adding headers and footers,
-and changing formatting.
+In this workshop, we will use `flextable` to:
+
+-   Create table in a word document
+
+-   Add headers and footers
+
+-   Change text formatting inside the table
+
+-   Merge cells
 
 We will use `iris` and the `diamonds` data set from the `ggplot2`
 package for examples and exercises.
@@ -65,12 +75,11 @@ the table will display the table in the viewer.
 ft
 ```
 
-You can also render the table in a Word document by using the
+**You can also render the table in a Word document** by using the
 `preview = "docx"` argument in the `print()` function. This way you can
 quickly see what the table would look like inside a word document.
 
 ```{r}
-set_flextable_defaults()
 print(ft, preview = "docx")
 ```
 
@@ -78,7 +87,7 @@ The cell width for header doesn't look too great... let's not worry
 about that for now. That's an aspect of the table that can be
 customized.
 
-Before we go on further, let's decide on the default format we would
+Before we go on further, **let's decide on the default format** we would
 like to apply for all our subsequent tables using the
 `set_flextable_defaults()` function. You can call this function once
 (usually in the beginning of your script or first code chunk in R
@@ -89,8 +98,7 @@ unless a different formatting is specified for a specific table.
 init_flextable_defaults()
 set_flextable_defaults(
   font.size = 12, font.family = "Arial", color = "black",
-  padding = 3, line_spacing = 1.2, table.layout = "autofit",
-  background.color = "beige"
+  table.layout = "autofit", background.color = "beige"
 )
 ```
 
@@ -169,6 +177,17 @@ the footer.
 For selecting and reordering columns, specify the column names in the
 `col_keys=` argument in the `flextable()` function.
 
+```{r}
+diamonds_ft <- diamonds %>% 
+  # select first 10 rows
+  head(10) %>%
+  # create flextable object, select and reorder columns
+  flextable(
+    col_keys = c("price", "carat","cut","color","clarity","x","y","z"),
+  )
+print(diamonds_ft)
+```
+
 There are four functions for adding header and footer:
 
 -   `add_header_row`, `add_header_lines`
@@ -199,12 +218,7 @@ In the following code, I add a new header on top of columns for price,
 the 4 C's, and the dimension.
 
 ```{r}
-diamonds_ft <- diamonds %>% 
-  head(10) %>%
-  # create flextable object, select and reorder columns
-  flextable(
-    col_keys = c("price", "carat","cut","color","clarity","x","y","z"),
-  ) %>%
+diamonds_ft <- diamonds_ft %>%
   # add header
   add_header_row(
     values = c("Price","4 C's", "Dimension"),
@@ -291,8 +305,8 @@ parts:
     to edit (can be `"header"`, `"footer"`, `"body"`, or `"all"`
 4.  **Function-specific arguments**
 
-Suppose we would like to center and bold all the headers. We can use the
-`align()` function on the table.
+Suppose we would like to **center and bold** all the headers. We can use
+the `align()` and `bold()` function on the table.
 
 ```{r}
 diamonds_ft <- diamonds_ft %>%
@@ -313,15 +327,15 @@ focus on two ways: as integers and formula.
 
 #### Integer Based Selection
 
-You can use integers as an index of the cell for which you would like t
-o select.
+You can use integers as an index of the cell for which you would like to
+select.
 
 ```{r}
 diamonds_ft %>%
   # highlight entire first row of the body
   bg(i = 1, bg = "skyblue", part = "body") %>%
   # highlight third row third column of the body
-  bg(i = 3, j = 3, bg = "skyblue", part = "body") %>%
+  bg(i = c(6,7,8), j = 3, bg = "skyblue", part = "body") %>%
   # remember you can also change header properties as well.
   # the index goes from top to bottom
   bg(i = 1, bg = "skyblue3", part = "header")
@@ -339,11 +353,12 @@ For selecting columns, you can follow similar syntax by writing the
 column name, and using `+` to select multiple columns.
 
 ```{r}
-diamonds_ft %>%
-  # bold and color cuts that are "Ideal" or "Premium"
+diamonds_ft <- diamonds_ft %>%
+  # bold and color cuts and price that are "Ideal" or "Premium"
   bold(i = ~ cut %in% c("Ideal", "Premium"), j = ~ cut + price) %>%
   color(i = ~ cut %in% c("Ideal", "Premium"), j = ~ cut, color = "skyblue4") %>%
   color(i = ~ cut %in% c("Ideal", "Premium"), j = ~ price, color = "forestgreen")
+diamonds_ft
 ```
 
 ### Adding and Customizing Borders / Lines
@@ -494,7 +509,6 @@ iris_summary <- iris %>%
 
 ```{r}
 # type your answer here
-
 ```
 
 # Conclusion
